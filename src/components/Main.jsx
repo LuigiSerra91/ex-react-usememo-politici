@@ -10,8 +10,8 @@ const CardPolitician = memo(({ card }) => {
                 <img src={card.image} className="card-img-top" alt={card.name} />
                 <div className="card-body">
                     <h5 className="card-title">{card.name}</h5>
-                    <p className="card-subtitle text-muted">{card.position}</p>
-                    <p className="card-text">{card.biography}</p>
+                    <p className="card-subtitle text-muted pb-2">Posizione: {card.position}</p>
+                    <p className="card-text"><strong>Biografia:</strong> {card.biography}</p>
                 </div>
             </div>
         </div>
