@@ -1,20 +1,38 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, memo } from "react";
+
+
+const CardPolitician = memo(({ card }) => {
+    console.log(`Rendering card: ${card.name}`);
+
+    return (
+        <div className="col-md-3 col-sm-6">
+            <div className="card shadow-sm h-100">
+                <img src={card.image} className="card-img-top" alt={card.name} />
+                <div className="card-body">
+                    <h5 className="card-title">{card.name}</h5>
+                    <p className="card-subtitle text-muted">{card.position}</p>
+                    <p className="card-text">{card.biography}</p>
+                </div>
+            </div>
+        </div>
+    );
+});
 
 export default function Main() {
     const [cards, setCards] = useState([]);
     const [error, setError] = useState(null);
+    const [search, setSearch] = useState("");
 
     async function fetchData(url) {
         try {
             const response = await fetch(url);
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const data = await response.json();
-            console.log("Dati ricevuti:", data); // Debug per verificare i dati ricevuti
             return data;
         } catch (error) {
             console.error("Errore nel recupero dati:", error);
             setError(error.message);
-            return []; // Per evitare crash su `map()`
+            return [];
         }
     }
 
@@ -24,31 +42,45 @@ export default function Main() {
             if (Array.isArray(politicalData)) {
                 setCards(politicalData);
             } else {
-                console.error("Dati non validi:", politicalData);
                 setError("Dati ricevuti non validi");
             }
         }
-
         fetchDataAndSetState();
     }, []);
 
+
+    const filteredCards = useMemo(() => {
+        return cards.filter(card =>
+            card.name.toLowerCase().includes(search.toLowerCase()) ||
+            card.biography.toLowerCase().includes(search.toLowerCase())
+        );
+    }, [cards, search]);
+
     return (
-        <div className="container">
+        <div className="container mt-4">
+            <h1 className="text-center p-2">Lista Completa dei Politici</h1>
+
+
+            <div className="mb-3">
+                <input
+                    type="text"
+                    className="form-control"
+                    placeholder="🔍 Cerca per nome o biografia..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+            </div>
+
             {error ? (
-                <p style={{ color: "red" }}>⚠️ Errore nel caricamento: {error}</p>
-            ) : cards.length > 0 ? (
-                <div className="card">
-                    {cards.map((card) => (
-                        <div key={card.id} className="cardInformation">
-                            <p>{card.name}</p>
-                            <img src={card.image} alt={card.name} />
-                            <p>{card.position}</p>
-                            <p>{card.biography}</p> {/* Corretto da "biografy" a "biography" */}
-                        </div>
+                <p className="text-danger text-center">⚠️ Errore nel caricamento: {error}</p>
+            ) : filteredCards.length > 0 ? (
+                <div className="row g-3">
+                    {filteredCards.map((card) => (
+                        <CardPolitician key={card.id} card={card} />
                     ))}
                 </div>
             ) : (
-                <p>⏳ Caricamento...</p>
+                <p className="text-center">❌ Nessun risultato trovato.</p>
             )}
         </div>
     );
